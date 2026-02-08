@@ -133,7 +133,7 @@ export const skinAnalysis = onRequest(
     const client = await getGeminiClient();
 
     // MODEL FALLBACK LOGIC
-    const models = ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest"];
+    const models = ["gemini-1.5-pro", "gemini-1.5-flash"];
     let result = null;
     let lastError = null;
 
@@ -295,7 +295,7 @@ export const analyzePhoto = onRequest(
     const client = await getGeminiClient();
 
     // MODEL FALLBACK LOGIC
-    const models = ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest"];
+    const models = ["gemini-1.5-pro", "gemini-1.5-flash"];
     let result = null;
     let lastError = null;
 
