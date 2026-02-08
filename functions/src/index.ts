@@ -131,7 +131,7 @@ export const skinAnalysis = onRequest(
     }
 
     const client = await getGeminiClient();
-    const model = client.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+    const model = client.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const systemPrompt =
       language === "fr"
@@ -267,7 +267,7 @@ export const analyzePhoto = onRequest(
     const { mimeType, base64 } = normalizeBase64(imageBase64);
 
     const client = await getGeminiClient();
-    const model = client.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+    const model = client.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const language = lang === "fr" ? "French" : "English";
     const basePrompt =
