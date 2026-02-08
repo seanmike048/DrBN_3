@@ -131,91 +131,95 @@ export const skinAnalysis = onRequest(
     }
 
     const client = await getGeminiClient();
-    const model = client.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+    // MODEL FALLBACK LOGIC
+    const models = ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest"];
+    let result = null;
+    let lastError = null;
 
     const systemPrompt =
       language === "fr"
         ? `Tu es un dermatologue expert spécialisé dans les soins des peaux riches en mélanine. Analyse le profil de peau fourni et génère des recommandations personnalisées de soins.
-
-IMPORTANT: Réponds UNIQUEMENT avec un objet JSON valide, sans texte supplémentaire, sans backticks, sans "json" au début. Le format doit être:
-
-{
-  "skinType": "le type de peau",
-  "concerns": ["liste", "des", "préoccupations"],
-  "overallScore": 85,
-  "summary": "Résumé personnalisé de l'analyse",
-  "recommendations": [
-    {"title": "Titre", "description": "Description détaillée", "priority": "high|medium|low"}
-  ],
-  "morningRoutine": [
-    {"step": 1, "product": "Produit", "instructions": "Instructions", "timing": "Durée"}
-  ],
-  "eveningRoutine": [
-    {"step": 1, "product": "Produit", "instructions": "Instructions", "timing": "Durée"}
-  ],
-  "ingredients": [
-    {"name": "Ingrédient", "benefit": "Bénéfice", "safeForMelaninRich": true, "caution": "optionnel"}
-  ]
-}`
+ 
+ IMPORTANT: Réponds UNIQUEMENT avec un objet JSON valide, sans texte supplémentaire, sans backticks, sans "json" au début. Le format doit être:
+ 
+ {
+   "skinType": "le type de peau",
+   "concerns": ["liste", "des", "préoccupations"],
+   "overallScore": 85,
+   "summary": "Résumé personnalisé de l'analyse",
+   "recommendations": [
+     {"title": "Titre", "description": "Description détaillée", "priority": "high|medium|low"}
+   ],
+   "morningRoutine": [
+     {"step": 1, "product": "Produit", "instructions": "Instructions", "timing": "Durée"}
+   ],
+   "eveningRoutine": [
+     {"step": 1, "product": "Produit", "instructions": "Instructions", "timing": "Durée"}
+   ],
+   "ingredients": [
+     {"name": "Ingrédient", "benefit": "Bénéfice", "safeForMelaninRich": true, "caution": "optionnel"}
+   ]
+ }`
         : `You are an expert dermatologist specializing in melanin-rich skin care. Analyze the provided skin profile and generate personalized skincare recommendations.
-
-IMPORTANT: Respond ONLY with a valid JSON object, no additional text, no backticks, no "json" prefix. The format must be:
-
-{
-  "skinType": "the skin type",
-  "concerns": ["list", "of", "concerns"],
-  "overallScore": 85,
-  "summary": "Personalized analysis summary",
-  "recommendations": [
-    {"title": "Title", "description": "Detailed description", "priority": "high|medium|low"}
-  ],
-  "morningRoutine": [
-    {"step": 1, "product": "Product", "instructions": "Instructions", "timing": "Duration"}
-  ],
-  "eveningRoutine": [
-    {"step": 1, "product": "Product", "instructions": "Instructions", "timing": "Duration"}
-  ],
-  "ingredients": [
-    {"name": "Ingredient", "benefit": "Benefit", "safeForMelaninRich": true, "caution": "optional"}
-  ]
-}`;
+ 
+ IMPORTANT: Respond ONLY with a valid JSON object, no additional text, no backticks, no "json" prefix. The format must be:
+ 
+ {
+   "skinType": "the skin type",
+   "concerns": ["list", "of", "concerns"],
+   "overallScore": 85,
+   "summary": "Personalized analysis summary",
+   "recommendations": [
+     {"title": "Title", "description": "Detailed description", "priority": "high|medium|low"}
+   ],
+   "morningRoutine": [
+     {"step": 1, "product": "Product", "instructions": "Instructions", "timing": "Duration"}
+   ],
+   "eveningRoutine": [
+     {"step": 1, "product": "Product", "instructions": "Instructions", "timing": "Duration"}
+   ],
+   "ingredients": [
+     {"name": "Ingredient", "benefit": "Benefit", "safeForMelaninRich": true, "caution": "optional"}
+   ]
+ }`;
 
     const userPrompt =
       language === "fr"
         ? `Analyse ce profil de peau et génère des recommandations personnalisées:
-
-Type de peau: ${profile.skinType || "Non spécifié"}
-Préoccupations: ${Array.isArray(profile.concerns) ? profile.concerns.join(", ") : profile.concerns || "Aucune"
+ 
+ Type de peau: ${profile.skinType || "Non spécifié"}
+ Préoccupations: ${Array.isArray(profile.concerns) ? profile.concerns.join(", ") : profile.concerns || "Aucune"
         }
-Tranche d'âge: ${profile.ageRange || "Non spécifié"}
-Exposition au soleil: ${profile.sunExposure || "Non spécifié"}
-Routine actuelle: ${profile.currentRoutine || "Non spécifié"}
-${photoData ? "Photo de peau fournie pour analyse visuelle." : ""}
-
-Génère une analyse complète avec:
-- Un score de santé de la peau (0-100)
-- Un résumé personnalisé
-- 3-4 recommandations prioritaires
-- Une routine matin (4-5 étapes)
-- Une routine soir (4-5 étapes)
-- 5-6 ingrédients recommandés (avec précautions pour peaux riches en mélanine)`
+ Tranche d'âge: ${profile.ageRange || "Non spécifié"}
+ Exposition au soleil: ${profile.sunExposure || "Non spécifié"}
+ Routine actuelle: ${profile.currentRoutine || "Non spécifié"}
+ ${photoData ? "Photo de peau fournie pour analyse visuelle." : ""}
+ 
+ Génère une analyse complète avec:
+ - Un score de santé de la peau (0-100)
+ - Un résumé personnalisé
+ - 3-4 recommandations prioritaires
+ - Une routine matin (4-5 étapes)
+ - Une routine soir (4-5 étapes)
+ - 5-6 ingrédients recommandés (avec précautions pour peaux riches en mélanine)`
         : `Analyze this skin profile and generate personalized recommendations:
-
-Skin Type: ${profile.skinType || "Not specified"}
-Concerns: ${Array.isArray(profile.concerns) ? profile.concerns.join(", ") : profile.concerns || "None"
+ 
+ Skin Type: ${profile.skinType || "Not specified"}
+ Concerns: ${Array.isArray(profile.concerns) ? profile.concerns.join(", ") : profile.concerns || "None"
         }
-Age Range: ${profile.ageRange || "Not specified"}
-Sun Exposure: ${profile.sunExposure || "Not specified"}
-Current Routine: ${profile.currentRoutine || "Not specified"}
-${photoData ? "Skin photo provided for visual analysis." : ""}
-
-Generate a complete analysis with:
-- A skin health score (0-100)
-- A personalized summary
-- 3-4 priority recommendations
-- A morning routine (4-5 steps)
-- An evening routine (4-5 steps)
-- 5-6 recommended ingredients (with cautions for melanin-rich skin)`;
+ Age Range: ${profile.ageRange || "Not specified"}
+ Sun Exposure: ${profile.sunExposure || "Not specified"}
+ Current Routine: ${profile.currentRoutine || "Not specified"}
+ ${photoData ? "Skin photo provided for visual analysis." : ""}
+ 
+ Generate a complete analysis with:
+ - A skin health score (0-100)
+ - A personalized summary
+ - 3-4 priority recommendations
+ - A morning routine (4-5 steps)
+ - An evening routine (4-5 steps)
+ - 5-6 recommended ingredients (with cautions for melanin-rich skin)`;
 
     const contentParts: any[] = [{ text: `${systemPrompt}\n\n${userPrompt}` }];
 
@@ -224,7 +228,23 @@ Generate a complete analysis with:
       contentParts.push({ inlineData: { data: base64, mimeType } });
     }
 
-    const result = await model.generateContent(contentParts);
+    // execute with fallback
+    for (const modelName of models) {
+      try {
+        const model = client.getGenerativeModel({ model: modelName });
+        result = await model.generateContent(contentParts);
+        if (result) break;
+      } catch (e: any) {
+        logger.warn(`Model ${modelName} failed:`, safeError(e));
+        lastError = e;
+      }
+    }
+
+    if (!result) {
+      logger.error("All Gemini models failed in skinAnalysis:", safeError(lastError));
+      return res.status(502).json({ ok: false, error: "AI service unavailable." });
+    }
+
     const responseText = result?.response?.text?.() ?? "";
     if (!responseText) return res.status(502).json({ ok: false, error: "Empty response from AI model." });
 
@@ -255,7 +275,13 @@ export const analyzePhoto = onRequest(
   withCors(async (req, res) => {
     assertPostJson(req);
 
-    const { imageBase64, prompt, lang } = req.body ?? {};
+    const { imageBase64, prompt, lang, profile } = req.body ?? {};
+
+    // VALIDATE REQUEST PAYLOAD
+    if (!profile) {
+      return res.status(400).json({ ok: false, error: "Missing profile data." });
+    }
+
     if (!imageBase64 || typeof imageBase64 !== "string") {
       return res.status(400).json({ ok: false, error: "Missing imageBase64 (string)." });
     }
@@ -267,7 +293,11 @@ export const analyzePhoto = onRequest(
     const { mimeType, base64 } = normalizeBase64(imageBase64);
 
     const client = await getGeminiClient();
-    const model = client.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+    // MODEL FALLBACK LOGIC
+    const models = ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest"];
+    let result = null;
+    let lastError = null;
 
     const language = lang === "fr" ? "French" : "English";
     const basePrompt =
@@ -278,10 +308,26 @@ Analyze the selfie for cosmetic insights only (NOT medical diagnosis). Be specif
 Return concise, structured recommendations (cleanser/treatment/moisturizer/SPF + 1-2 weekly actions) and include safety cautions for irritation/PIH risk.
 Write in ${language}.`;
 
-    const result = await model.generateContent([
+    const contentParts = [
       { text: basePrompt },
-      { inlineData: { data: base64, mimeType } },
-    ]);
+      { inlineData: { data: base64, mimeType } }
+    ];
+
+    for (const modelName of models) {
+      try {
+        const model = client.getGenerativeModel({ model: modelName });
+        result = await model.generateContent(contentParts);
+        if (result) break;
+      } catch (e: any) {
+        logger.warn(`Model ${modelName} failed:`, safeError(e));
+        lastError = e;
+      }
+    }
+
+    if (!result) {
+      logger.error("All Gemini models failed:", safeError(lastError));
+      return res.status(502).json({ ok: false, error: "AI service unavailable. Please try again later." });
+    }
 
     const analysisText = result?.response?.text?.() ?? "";
     if (!analysisText) return res.status(502).json({ ok: false, error: "Empty response from AI model." });
