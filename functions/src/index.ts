@@ -12,7 +12,7 @@ const allowedOrigins = [
 ];
 
 const corsHandler = cors({
-  origin: (origin, callback) => {
+  origin: (origin: any, callback: any) => {
     // Allow server-to-server or same-origin calls with no Origin header
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
@@ -133,7 +133,7 @@ export const skinAnalysis = onRequest(
     const client = await getGeminiClient();
 
     // MODEL FALLBACK LOGIC
-    const models = ["gemini-1.5-pro", "gemini-1.5-flash"];
+    const models = ["gemini-1.5-pro", "gemini-1.5-flash-001"];
     let result = null;
     let lastError = null;
 
@@ -295,7 +295,7 @@ export const analyzePhoto = onRequest(
     const client = await getGeminiClient();
 
     // MODEL FALLBACK LOGIC
-    const models = ["gemini-1.5-pro", "gemini-1.5-flash"];
+    const models = ["gemini-1.5-pro", "gemini-1.5-flash-001"];
     let result = null;
     let lastError = null;
 
