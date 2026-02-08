@@ -131,7 +131,7 @@ export const skinAnalysis = onRequest(
     }
 
     const client = await getGeminiClient();
-    const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = client.getGenerativeModel({ model: "gemini-1.5-flash-001" });
 
     const systemPrompt =
       language === "fr"
@@ -185,9 +185,8 @@ IMPORTANT: Respond ONLY with a valid JSON object, no additional text, no backtic
         ? `Analyse ce profil de peau et génère des recommandations personnalisées:
 
 Type de peau: ${profile.skinType || "Non spécifié"}
-Préoccupations: ${
-            Array.isArray(profile.concerns) ? profile.concerns.join(", ") : profile.concerns || "Aucune"
-          }
+Préoccupations: ${Array.isArray(profile.concerns) ? profile.concerns.join(", ") : profile.concerns || "Aucune"
+        }
 Tranche d'âge: ${profile.ageRange || "Non spécifié"}
 Exposition au soleil: ${profile.sunExposure || "Non spécifié"}
 Routine actuelle: ${profile.currentRoutine || "Non spécifié"}
@@ -203,9 +202,8 @@ Génère une analyse complète avec:
         : `Analyze this skin profile and generate personalized recommendations:
 
 Skin Type: ${profile.skinType || "Not specified"}
-Concerns: ${
-            Array.isArray(profile.concerns) ? profile.concerns.join(", ") : profile.concerns || "None"
-          }
+Concerns: ${Array.isArray(profile.concerns) ? profile.concerns.join(", ") : profile.concerns || "None"
+        }
 Age Range: ${profile.ageRange || "Not specified"}
 Sun Exposure: ${profile.sunExposure || "Not specified"}
 Current Routine: ${profile.currentRoutine || "Not specified"}
@@ -269,7 +267,7 @@ export const analyzePhoto = onRequest(
     const { mimeType, base64 } = normalizeBase64(imageBase64);
 
     const client = await getGeminiClient();
-    const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = client.getGenerativeModel({ model: "gemini-1.5-flash-001" });
 
     const language = lang === "fr" ? "French" : "English";
     const basePrompt =
